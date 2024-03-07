@@ -8,19 +8,18 @@ import kotlin.math.ceil
  * @property distanciaTotal La distancia total que los vehículos deben recorrer para completar la carrera.
  * @constructor Inicializa una carrera con una lista de vehículos participantes y valida la distancia mínima requerida.
  */
-class Carrera(
+class Carrera<T : Vehiculo>(
     val nombreCarrera: String,
     private val distanciaTotal: Float,
-    participantes: List<Vehiculo> = listOf()
+    private val participantes: List<T> = listOf()
 ) {
-    private val participantes: MutableList<Vehiculo> = mutableListOf()
     private val historialAcciones = mutableMapOf<String, MutableList<String>>()
     private var estadoCarrera = false // Indica si la carrera está en curso o ha finalizado.
     private val posiciones = mutableMapOf<String, Float>()
 
     init {
         require(distanciaTotal >= 1000) { "La distancia total de la carrera debe ser al menos 1000 km." }
-        participantes.forEach { vehiculo -> agregarParticipante(vehiculo) }
+        participantes.forEach { vehiculo -> inicializaDatosParticipante(vehiculo) }
     }
 
     companion object {
@@ -56,17 +55,6 @@ class Carrera(
      */
     override fun toString(): String {
         return "NombreCarrera: $nombreCarrera, DistanciaTotal: $distanciaTotal, Participantes: $participantes, EstadoCarrera: $estadoCarrera, HistorialAcciones: $historialAcciones, Posiciones: $posiciones." }
-
-    /**
-     * Agrega un vehículo a la lista de participantes de la carrera. Inicializa los datos del participante,
-     * preparándolo para la competencia.
-     *
-     * @param vehiculo El vehículo que se agregará a la lista de participantes.
-     */
-    private fun agregarParticipante(vehiculo: Vehiculo) {
-        participantes.add(vehiculo)
-        inicializaDatosParticipante(vehiculo)
-    }
 
     /**
      * Inicializa los datos de un participante en la carrera, preparando su historial de acciones y estableciendo
@@ -137,7 +125,7 @@ class Carrera(
         return if (distanciaAleatoria + kilometrosRecorridos > this.distanciaTotal) {
             this.distanciaTotal - kilometrosRecorridos
         } else {
-            distanciaAleatoria.toFloat()
+            distanciaAleatoria
         }
     }
 
@@ -151,7 +139,10 @@ class Carrera(
         val distanciaTotalEnAvance = obtenerDistanciaARecorrer(vehiculo.kilometrosActuales)
         val numeroDeTramos = obtenerNumeroDeTramos(distanciaTotalEnAvance) // Rompemos el recorrido en tramos de 20 km.
 
-        registrarAccion(vehiculo.nombre, "Inicia viaje: A recorrer $distanciaTotalEnAvance kms (${vehiculo.kilometrosActuales} kms y ${vehiculo.combustibleActual} L actuales)")
+        registrarAccion(
+            vehiculo.nombre,
+            "Inicia viaje: A recorrer %.2f kms (%.2f kms y %.2f L actuales)".format(distanciaTotalEnAvance, vehiculo.kilometrosActuales, vehiculo.combustibleActual)
+        )
 
         var distanciaRestanteEnAvance = distanciaTotalEnAvance
         repeat(numeroDeTramos) { //Tramos de KM_PARA_FILIGRANA km
@@ -162,7 +153,10 @@ class Carrera(
             repeat(2) { realizarFiligrana(vehiculo) }
         }
 
-        registrarAccion(vehiculo.nombre, "Finaliza viaje: Total Recorrido $distanciaTotalEnAvance kms (${vehiculo.kilometrosActuales} kms y ${vehiculo.combustibleActual} L actuales)")
+        registrarAccion(
+            vehiculo.nombre,
+            "Finaliza viaje: Total Recorrido %.2f kms (%.2f kms y %.2f L actuales)".format(distanciaTotalEnAvance, vehiculo.kilometrosActuales, vehiculo.combustibleActual)
+        )
 
         actualizarPosiciones(vehiculo.nombre, distanciaTotalEnAvance)
     }
@@ -177,17 +171,26 @@ class Carrera(
      */
     private fun avanzarTramo(vehiculo: Vehiculo, distanciaEnTramo: Float) {
         var distanciaRestante = vehiculo.realizaViaje(distanciaEnTramo)
-        registrarAccion(vehiculo.nombre, "Avance tramo: Recorrido ${distanciaEnTramo - distanciaRestante} kms")
+        registrarAccion(
+            vehiculo.nombre,
+            "Avance tramo: Recorrido %.2f kms".format(distanciaEnTramo - distanciaRestante)
+        )
 
         // Si le queda alguna distancia por recorrer debe repostar
         while (distanciaRestante > 0) {
             val repostado = vehiculo.repostar() // Llenamos el tanque
-            registrarAccion(vehiculo.nombre, "Repostaje tramo: $repostado L")
+            registrarAccion(
+                vehiculo.nombre,
+                "Repostaje tramo: %.2f L".format(repostado)
+            )
 
             // Necesitamos de nuevo una distancia para después compararla con la distanciaRestante que devuelve realizarViaje()
             val distancia = distanciaRestante
             distanciaRestante = vehiculo.realizaViaje(distancia)
-            registrarAccion(vehiculo.nombre, "Avance tramo: Recorrido ${distancia - distanciaRestante} kms")
+            registrarAccion(
+                vehiculo.nombre,
+                "Avance tramo: Recorrido %.2f kms".format(distancia - distanciaRestante)
+            )
         }
     }
 
@@ -213,10 +216,16 @@ class Carrera(
 
             if (vehiculo is Automovil) {
                 combustibleRestante = vehiculo.realizaDerrape()
-                registrarAccion(vehiculo.nombre, "Derrape: Combustible restante $combustibleRestante L.")
+                registrarAccion(
+                    vehiculo.nombre,
+                    "Derrape: Combustible restante %.2f L.".format(combustibleRestante)
+                )
             } else if (vehiculo is Motocicleta) {
                 combustibleRestante = vehiculo.realizaCaballito()
-                registrarAccion(vehiculo.nombre, "Caballito: Combustible restante $combustibleRestante L")
+                registrarAccion(
+                    vehiculo.nombre,
+                    "Caballito: Combustible restante %.2f L.".format(combustibleRestante)
+                )
             }
         }
     }
@@ -279,7 +288,7 @@ class Carrera(
                     ResultadoCarrera(
                         vehiculo,
                         posicion + 1,
-                        kilometraje,
+                        kilometraje.redondear(2),
                         paradasRepostaje,
                         historial
                     )

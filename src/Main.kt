@@ -28,44 +28,8 @@ fun String.capitalizar(): String {
     return listaPalabras.joinToString(" ") { palabra -> palabra.lowercase().replaceFirstChar { it.uppercase() } }
 }
 
-fun pedirNumero(mensaje: String) : Int {
-    var error = false
-    var numero = 0
-
-    do {
-        try {
-            print(mensaje)
-            numero = readln().toInt()
-        }
-        catch (e: NumberFormatException) {
-            error = true
-            println("**Error** Debe introducir un número entero.")
-        }
-    } while (error)
-
-    return numero
-}
-
-fun crearVehiculo(factories: List<VehiculoFactory<out Vehiculo>>, index: Int): Vehiculo {
-    val factory = factories.random()
-    var vehiculo: Vehiculo? = null
-
-    do {
-        try {
-            print("\t* Nombre del vehículo $index -> ")
-            val nombre = readln().capitalizar()
-            vehiculo = generarVehiculo(factory, nombre)
-        }
-        catch (e: IllegalArgumentException) {
-            println("**Error** ${e.message}")
-        }
-    } while (vehiculo == null)
-
-    return vehiculo
-}
-
 /**
- * Punto de entrada del programa. Crea una lista de vehículos y una carrera, e inicia la carrera mostrando
+ * Punto de entrada del programa. Crea una lista de vehículos aleatorios y una carrera, e inicia la carrera mostrando
  * los resultados al finalizar.
  */
 fun main() {
@@ -73,26 +37,13 @@ fun main() {
     val factories = listOf(AutomovilFactory(), MotocicletaFactory(), CamionFactory(), QuadFactory())
     val vehiculos = mutableListOf<Vehiculo>()
 
-    val numeroParticipantes = pedirNumero("Introduce el número de participantes: ")
+    val numeroParticipantes = GestorConsola.pedirNumero("Introduce el número de participantes: ")
 
     repeat(numeroParticipantes) { index ->
-        val vehiculo = crearVehiculo(factories, index + 1)
+        val vehiculo = GestorConsola.crearVehiculoAleatorio(factories, index + 1)
         vehiculos.add(vehiculo)
         println("\t${vehiculo.obtenerInformacion()}")
     }
-
-
-
-    /*
-    val vehiculos = listOf(
-        Automovil("aurora", "Seat", "Panda", 50f, 50f * 0.1f, 0f, true),
-        Automovil("Boreal m8", "BMW", "M8", 80f, 80f * 0.1f, 0f, false),
-        Motocicleta("Céfiro", "Derbi", "Motoreta", 15f, 15f * 0.1f, 0f, Cilindrada.CIL_500),
-        Automovil("Dinamo", "Cintroen", "Sor", 70f, 70f * 0.1f, 0f, true),
-        Automovil("eclipse negro", "Renault", "Espacio", 60f, 60f * 0.1f, 0f, false),
-        Motocicleta("Fénix", "Honda", "Vital", 20f, 20f * 0.1f, 0f, Cilindrada.CIL_250)
-    )
-    */
 
     val carrera = Carrera("Gran Carrera de Filigranas", 1000f, vehiculos)
 
@@ -102,11 +53,10 @@ fun main() {
     val resultados = carrera.obtenerResultados()
 
     println("* Clasificación:\n")
-    resultados.forEach { println("${it.posicion} -> ${it.vehiculo.nombre} (${it.vehiculo.kilometrosActuales} kms)") }
+    resultados.forEach { println("${it.posicion} -> ${it.vehiculo.nombre} (%.2f kms)".format(it.vehiculo.kilometrosActuales)) }
 
     println("\n" + resultados.joinToString("\n") { it.toString() })
 
     println("\n* Historial Detallado:\n")
     resultados.forEach { println("${it.posicion} -> ${it.vehiculo.nombre}\n${it.historialAcciones.joinToString("\n")}\n") }
 }
-

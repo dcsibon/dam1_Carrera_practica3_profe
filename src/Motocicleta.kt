@@ -22,6 +22,15 @@ open class Motocicleta(
     override fun obtenerKmLitroAjustado() = (KM_POR_LITRO - (1 - (cilindrada.cc/1000)))
 
     /**
+     * Devuelve una cadena de texto con la información del vehículo dentro de una frase.
+     *
+     * @return Una cadena de texto que representa la información del vehículo.
+     */
+    override fun obtenerInformacion(): String {
+        return "Te ha tocado una ${toString()}"
+    }
+
+    /**
      * Ejecuta una maniobra de caballito con la motocicleta, consumiendo una cantidad fija de combustible.
      * Este método simula el caballito sin importar el nivel de combustible actual.
      *

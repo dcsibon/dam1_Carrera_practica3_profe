@@ -17,10 +17,13 @@ open class Vehiculo(
     protected val modelo: String,
     capacidadCombustible: Float,
     combustibleActual: Float,
-    var kilometrosActuales: Float
+    kilometrosActuales: Float
 ) {
 
     protected val capacidadCombustible = capacidadCombustible.redondear(2)
+
+    var kilometrosActuales = kilometrosActuales.redondear(2)
+
     var combustibleActual = combustibleActual.redondear(2)
         set(value) {
             // Si por pequeños errores de redondeo el valor es negativo, establecemos el valor 0,
@@ -58,11 +61,11 @@ open class Vehiculo(
      * @return La autonomía del vehículo en kilómetros como [Int].
      */
     private fun calcularAutonomia(): Float {
-        return (combustibleActual * obtenerKmLitroAjustado()).redondear(2) // Cada litro da para 10 km.
+        return (combustibleActual * obtenerKmLitroAjustado()) // Cada litro da para 10 km.
     }
 
     /**
-     * Devuelve una cadena de texto con la información de los kilómetros que puede recorrer el vehículo.
+     * Devuelve una cadena de texto con la información del vehículo dentro de una frase.
      *
      * @return Una cadena de texto que representa la información del vehículo.
      */
@@ -101,7 +104,7 @@ open class Vehiculo(
      */
     protected fun actualizaCombustible(distanciaReal: Float) {
         val combustibleGastado = (distanciaReal / obtenerKmLitroAjustado())
-        combustibleActual -= combustibleGastado.redondear(2)
+        combustibleActual -= combustibleGastado
     }
 
     /**
