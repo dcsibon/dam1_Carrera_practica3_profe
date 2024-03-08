@@ -12,8 +12,6 @@ val modelosAutomovil = listOf("Basic", "Basic A", "Premium A", "Premium B")
 val marcasMotos = listOf("Harley Davidson", "Ducati", "Aprilia", "BMW", "Yamaha", "Honda", "Suzuki", "Kawasaki", "KTM")
 val modelosMotos = listOf("Moto A", "Moto B", "Moto C", "Moto D")
 
-
-
 /**
  * Define una interfaz de fábrica genérica para la creación de vehículos.
  */
@@ -27,9 +25,16 @@ interface VehiculoFactory<T : Vehiculo> {
 }
 
 /**
- * Implementación de la fábrica para la creación de [Automovil].
+ * Representa una fábrica específica para la creación de objetos [Automovil].
+ * Esta clase implementa la interfaz [VehiculoFactory] para proporcionar una implementación concreta
+ * del método `crearVehiculo`, especializado en la creación de instancias de [Automovil].
  */
 class AutomovilFactory : VehiculoFactory<Automovil> {
+    /**
+     * Crea y devuelve una nueva instancia de [Automovil] con propiedades aleatorias dentro de rangos predefinidos.
+     * @param nombre El nombre que se asignará al nuevo automóvil.
+     * @return Una nueva instancia de [Automovil].
+     */
     override fun crearVehiculo(nombre: String): Automovil {
         val capacidadCombustible = Random.nextInt(30, 61).toFloat()
         val combustibleActual = (capacidadCombustible * Random.nextDouble(0.2, 1.0)).toFloat().redondear(2)
@@ -37,8 +42,17 @@ class AutomovilFactory : VehiculoFactory<Automovil> {
     }
 }
 
-// Fábrica para Motocicleta
+/**
+ * Representa una fábrica específica para la creación de objetos [Motocicleta].
+ * Proporciona una implementación específica para crear instancias de [Motocicleta] con propiedades
+ * inicializadas aleatoriamente.
+ */
 class MotocicletaFactory : VehiculoFactory<Motocicleta> {
+    /**
+     * Crea y devuelve una nueva instancia de [Motocicleta] con propiedades aleatorias dentro de rangos predefinidos.
+     * @param nombre El nombre que se asignará a la nueva motocicleta.
+     * @return Una nueva instancia de [Motocicleta].
+     */
     override fun crearVehiculo(nombre: String): Motocicleta {
         val capacidadCombustible = Random.nextInt(15, 31).toFloat()
         val combustibleActual = (capacidadCombustible * Random.nextDouble(0.2, 1.0)).toFloat().redondear(2)
@@ -46,8 +60,17 @@ class MotocicletaFactory : VehiculoFactory<Motocicleta> {
     }
 }
 
-// Fábrica para Camion
+/**
+ * Representa una fábrica específica para la creación de objetos [Camion].
+ * Esta clase provee una implementación concreta para la creación de instancias de [Camion],
+ * con características y propiedades determinadas aleatoriamente.
+ */
 class CamionFactory : VehiculoFactory<Camion> {
+    /**
+     * Crea y devuelve una nueva instancia de [Camion] con propiedades aleatorias dentro de rangos predefinidos.
+     * @param nombre El nombre que se asignará al nuevo camión.
+     * @return Una nueva instancia de [Camion].
+     */
     override fun crearVehiculo(nombre: String): Camion {
         val capacidadCombustible = Random.nextInt(90, 151).toFloat()
         val combustibleActual = (capacidadCombustible * Random.nextDouble(0.2, 1.0)).toFloat().redondear(2)
@@ -56,8 +79,17 @@ class CamionFactory : VehiculoFactory<Camion> {
     }
 }
 
-// Fábrica para Quad
+/**
+ * Representa una fábrica específica para la creación de objetos [Quad].
+ * Esta clase implementa la interfaz [VehiculoFactory] para ofrecer una forma concreta de crear
+ * instancias de [Quad] con propiedades inicializadas de forma aleatoria.
+ */
 class QuadFactory : VehiculoFactory<Quad> {
+    /**
+     * Crea y devuelve una nueva instancia de [Quad] con propiedades aleatorias dentro de rangos predefinidos.
+     * @param nombre El nombre que se asignará al nuevo quad.
+     * @return Una nueva instancia de [Quad].
+     */
     override fun crearVehiculo(nombre: String): Quad {
         val capacidadCombustible = Random.nextInt(20, 41).toFloat()
         val combustibleActual = (capacidadCombustible * Random.nextDouble(0.2, 1.0)).toFloat().redondear(2)
@@ -66,40 +98,52 @@ class QuadFactory : VehiculoFactory<Quad> {
 }
 
 /*
+EXPLICACIÓN del modificador out en la función generarVehiculo()
+---------------------------------------------------------------
+
 El modificador `out` se utiliza en la declaración de tipos genéricos para indicar una variante de covarianza.
 
 Cuando se utiliza `out`, significa que el tipo genérico puede ser consumido pero no producido.
 
-En otras palabras, podemos devolver el tipo genérico como salida de la función, pero no podemos pasar el objeto
-como entrada de métodos que modifican el tipo.
+En otras palabras, podemos devolver el tipo genérico como salida de la función, pero no podemos pasar el objeto como entrada de métodos que modifican el tipo.
 
-Se utiliza `out` para indicar que la lista `factories` puede contener instancias de `VehiculoFactory` para cualquier
-subtipo de `Vehiculo`, no solo para `Vehiculo` específicamente. Esto es útil para trabajar con colecciones de objetos
-genéricos cuando queremos asegurar la seguridad de tipo al leer de la colección, pero no necesitamos modificarla.
+Se utiliza `out` para indicar que la lista `factories` puede contener instancias de `VehiculoFactory` para cualquier subtipo de `Vehiculo`, no solo para `Vehiculo` específicamente. Esto es útil para trabajar con colecciones de objetos genéricos cuando queremos asegurar la seguridad de tipo al leer de la colección, pero no necesitamos modificarla.
 
-- Seguridad de tipo en lectura: Podemos obtener objetos de tipo `Vehiculo` o de cualquier subtipo de `Vehiculo` de
-                                las fábricas sin comprometer la seguridad de tipo.
-- Invarianza superada: Sin el modificador `out`, la lista sería invariante. Esto significa que
-                       `List<VehiculoFactory<Automovil>>` no sería considerado un subtipo de
-                       `List<VehiculoFactory<Vehiculo>>`, lo cual limitaría su utilidad.
+- Seguridad de tipo en lectura: Podemos obtener objetos de tipo `Vehiculo` o de cualquier subtipo de `Vehiculo` de las fábricas sin comprometer la seguridad de tipo.
 
-Sin `out`, tendríamos que limitarte a una lista de fábricas específicas para un único tipo de `Vehiculo`, lo cual sería
-menos flexible.
+- Invarianza superada: Sin el modificador `out`, la lista sería invariante. Esto significa que `List<VehiculoFactory<Automovil>>` no sería considerado un subtipo de `List<VehiculoFactory<Vehiculo>>`, lo cual limitaría su utilidad.
 
-El uso de `out` en Kotlin facilita la programación genérica segura al permitirte ser más expresivo sobre cómo se pueden
-utilizar los tipos, especialmente cuando trabajamos con colecciones de objetos genéricos.
+Sin `out`, tendríamos que limitarte a una lista de fábricas específicas para un único tipo de `Vehiculo`, lo cual sería menos flexible.
 
-Permite la covarianza, haciendo que el código sea más flexible y seguro al trabajar con jerarquías de tipo.
+El uso de `out` en Kotlin facilita la programación genérica segura al permitirnos ser más expresivos sobre cómo se pueden utilizar los tipos, especialmente cuando trabajamos con colecciones de objetos genéricos.
 */
+/**
+ * Genera un vehículo de un tipo específico seleccionando aleatoriamente una fábrica de la lista proporcionada.
+ *
+ * Esta función toma una lista de fábricas que pueden crear vehículos de tipo `T`, que es un subtipo de `Vehiculo` y un nombre que se asignará al vehículo creado. La selección de la fábrica se hace de manera aleatoria. El vehículo es entonces creado por la fábrica seleccionada con el nombre proporcionado.
+ *
+ * @param factories Una lista de [VehiculoFactory] que son capaces de crear instancias de vehículos del tipo `T`. Cada fábrica en esta lista debe ser un subtipo de `VehiculoFactory` que produce instancias de `T`.
+ * @param nombre El nombre que se asignará al vehículo creado.
+ * @return Retorna una instancia del tipo `T`, que es un subtipo de `Vehiculo`, creado por una de las fábricas proporcionadas. El vehículo creado tendrá el nombre especificado en el parámetro `nombre`.
+ * @throws NoSuchElementException si la lista de fábricas está vacía.
+ * @see Vehiculo
+ * @see VehiculoFactory
+ */
 fun <T : Vehiculo> generarVehiculo(factories: List<VehiculoFactory<out T>>, nombre: String): T {
     val factory = factories.random()
     return factory.crearVehiculo(nombre)
 }
 
+/**
+ * Obtener un tipo de quad aleatorio de la clase enumerada TipoQuad
+ */
 fun obtenerTipoQuadAleatorio(): TipoQuad {
     return TipoQuad.entries.toTypedArray().random()
 }
 
+/**
+ * Obtener un tipo de cilindrada aleatoria de la clase enumerada Cilindrada
+ */
 fun obtenerCilindradaAleatoria(): Cilindrada {
     return Cilindrada.entries.toTypedArray().random()
 }
