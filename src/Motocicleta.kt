@@ -19,6 +19,12 @@ open class Motocicleta(
         const val KM_POR_CABALLITO = 6.5f // Gasto equivalente a 6,5 km.
     }
 
+    /**
+     * Sobrescribe el método obtenerKmLitroAjustado de la clase [Vehiculo] para calcular el rendimiento ajustado de
+     * kilómetros por litro para la motocicleta basándose en su cilindrada.
+     *
+     * @return El rendimiento ajustado de kilómetros por litro como un [Float]
+     */
     override fun obtenerKmLitroAjustado() = (KM_POR_LITRO - (1 - (cilindrada.cc/1000)))
 
     /**

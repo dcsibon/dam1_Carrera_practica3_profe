@@ -8,41 +8,21 @@ import kotlin.math.ceil
  * @property distanciaTotal La distancia total que los vehículos deben recorrer para completar la carrera.
  * @constructor Inicializa una carrera con una lista de vehículos participantes y valida la distancia mínima requerida.
  */
-class Carrera<T : Vehiculo>(
+class GestionCarrera<T : Vehiculo>(
     val nombreCarrera: String,
     private val distanciaTotal: Float,
-    private val participantes: List<T> = listOf()
+    private val participantes: List<T> = listOf(),
+    private val infoCarrera: InformacionCarrera
 ) {
-    private val historialAcciones = mutableMapOf<String, MutableList<String>>()
     private var estadoCarrera = false // Indica si la carrera está en curso o ha finalizado.
-    private val posiciones = mutableMapOf<String, Float>()
 
     init {
         require(distanciaTotal >= 1000) { "La distancia total de la carrera debe ser al menos 1000 km." }
-        participantes.forEach { vehiculo -> inicializaDatosParticipante(vehiculo) }
     }
 
     companion object {
         private const val KM_PARA_FILIGRANA = 20f // Cada 20 km, se realiza una filigrana.
     }
-
-    /**
-     * Representa el resultado final de un vehículo en la carrera, incluyendo su posición final, el kilometraje total recorrido,
-     * el número de paradas para repostar, y un historial detallado de todas las acciones realizadas durante la carrera.
-     *
-     * @property vehiculo El [Vehiculo] al que pertenece este resultado.
-     * @property posicion La posición final del vehículo en la carrera, donde una posición menor indica un mejor rendimiento.
-     * @property kilometraje El total de kilómetros recorridos por el vehículo durante la carrera.
-     * @property paradasRepostaje El número de veces que el vehículo tuvo que repostar combustible durante la carrera.
-     * @property historialAcciones Una lista de cadenas que describen las acciones realizadas por el vehículo a lo largo de la carrera, proporcionando un registro detallado de su rendimiento y estrategias.
-     */
-    data class ResultadoCarrera(
-        val vehiculo: Vehiculo,
-        val posicion: Int,
-        val kilometraje: Float,
-        val paradasRepostaje: Int,
-        val historialAcciones: List<String>
-    )
 
     /**
      * Proporciona una representación en cadena de texto de la instancia de la carrera, incluyendo detalles clave como
@@ -54,18 +34,7 @@ class Carrera<T : Vehiculo>(
      * distancia total, participantes, estado actual, historial de acciones y posiciones de los vehículos participantes.
      */
     override fun toString(): String {
-        return "NombreCarrera: $nombreCarrera, DistanciaTotal: $distanciaTotal, Participantes: $participantes, EstadoCarrera: $estadoCarrera, HistorialAcciones: $historialAcciones, Posiciones: $posiciones." }
-
-    /**
-     * Inicializa los datos de un participante en la carrera, preparando su historial de acciones y estableciendo
-     * su posición inicial. Este método se llama automáticamente al agregar un nuevo vehículo a la carrera.
-     *
-     * @param vehiculo El [Vehiculo] cuyos datos se inicializan.
-     */
-    private fun inicializaDatosParticipante(vehiculo: Vehiculo) {
-        historialAcciones[vehiculo.nombre] = mutableListOf()
-        posiciones[vehiculo.nombre] = 0f
-    }
+        return "NombreCarrera: $nombreCarrera, DistanciaTotal: $distanciaTotal, Participantes: $participantes, EstadoCarrera: $estadoCarrera, HistorialAcciones: ${infoCarrera.historialAcciones}, Posiciones: ${infoCarrera.posiciones}." }
 
     /**
      * Inicia el proceso de la carrera, haciendo que cada vehículo avance de forma aleatoria hasta que un vehículo
@@ -139,7 +108,7 @@ class Carrera<T : Vehiculo>(
         val distanciaTotalEnAvance = obtenerDistanciaARecorrer(vehiculo.kilometrosActuales)
         val numeroDeTramos = obtenerNumeroDeTramos(distanciaTotalEnAvance) // Rompemos el recorrido en tramos de 20 km.
 
-        registrarAccion(
+        infoCarrera.registrarAccion(
             vehiculo.nombre,
             "Inicia viaje: A recorrer %.2f kms (%.2f kms y %.2f L actuales)".format(distanciaTotalEnAvance, vehiculo.kilometrosActuales, vehiculo.combustibleActual)
         )
@@ -153,12 +122,12 @@ class Carrera<T : Vehiculo>(
             repeat(2) { realizarFiligrana(vehiculo) }
         }
 
-        registrarAccion(
+        infoCarrera.registrarAccion(
             vehiculo.nombre,
             "Finaliza viaje: Total Recorrido %.2f kms (%.2f kms y %.2f L actuales)".format(distanciaTotalEnAvance, vehiculo.kilometrosActuales, vehiculo.combustibleActual)
         )
 
-        actualizarPosiciones(vehiculo.nombre, distanciaTotalEnAvance)
+        infoCarrera.actualizarPosiciones(vehiculo.nombre, distanciaTotalEnAvance)
     }
 
     /**
@@ -171,7 +140,7 @@ class Carrera<T : Vehiculo>(
      */
     private fun avanzarTramo(vehiculo: Vehiculo, distanciaEnTramo: Float) {
         var distanciaRestante = vehiculo.realizaViaje(distanciaEnTramo)
-        registrarAccion(
+        infoCarrera.registrarAccion(
             vehiculo.nombre,
             "Avance tramo: Recorrido %.2f kms".format(distanciaEnTramo - distanciaRestante)
         )
@@ -179,7 +148,7 @@ class Carrera<T : Vehiculo>(
         // Si le queda alguna distancia por recorrer debe repostar
         while (distanciaRestante > 0) {
             val repostado = vehiculo.repostar() // Llenamos el tanque
-            registrarAccion(
+            infoCarrera.registrarAccion(
                 vehiculo.nombre,
                 "Repostaje tramo: %.2f L".format(repostado)
             )
@@ -187,7 +156,7 @@ class Carrera<T : Vehiculo>(
             // Necesitamos de nuevo una distancia para después compararla con la distanciaRestante que devuelve realizarViaje()
             val distancia = distanciaRestante
             distanciaRestante = vehiculo.realizaViaje(distancia)
-            registrarAccion(
+            infoCarrera.registrarAccion(
                 vehiculo.nombre,
                 "Avance tramo: Recorrido %.2f kms".format(distancia - distanciaRestante)
             )
@@ -216,30 +185,18 @@ class Carrera<T : Vehiculo>(
 
             if (vehiculo is Automovil) {
                 combustibleRestante = vehiculo.realizaDerrape()
-                registrarAccion(
+                infoCarrera.registrarAccion(
                     vehiculo.nombre,
                     "Derrape: Combustible restante %.2f L.".format(combustibleRestante)
                 )
             } else if (vehiculo is Motocicleta) {
                 combustibleRestante = vehiculo.realizaCaballito()
-                registrarAccion(
+                infoCarrera.registrarAccion(
                     vehiculo.nombre,
                     "Caballito: Combustible restante %.2f L.".format(combustibleRestante)
                 )
             }
         }
-    }
-
-    /**
-     * Actualiza la posición de un vehículo en la carrera, sumando la distancia recorrida en el último tramo
-     * a su total acumulado.
-     *
-     * @param nombreVehiculo El nombre del [Vehiculo] cuya posición se actualizará.
-     * @param kilometraje La distancia recorrida en el último tramo.
-     */
-    private fun actualizarPosiciones(nombreVehiculo: String, kilometraje: Float) {
-        val kilometrosRecorridos = posiciones[nombreVehiculo] ?: 0f
-        posiciones[nombreVehiculo] = kilometrosRecorridos + kilometraje
     }
 
     /**
@@ -249,52 +206,12 @@ class Carrera<T : Vehiculo>(
      * @return El [Vehiculo] ganador, si existe; de lo contrario, devuelve null.
      */
     private fun determinarGanador(): Vehiculo? {
-        val maxKilometros = posiciones.maxByOrNull { it.value }
-        var ganador: Vehiculo? = null
+        val ganador: Vehiculo? = participantes.maxByOrNull { it.kilometrosActuales }
 
-        if ((maxKilometros?.value ?: 0f) >= distanciaTotal)
-            ganador = participantes.find { it.nombre == maxKilometros?.key }
-
-        return ganador
-    }
-
-    /**
-     * Registra una acción específica realizada por un vehículo en su historial de acciones durante la carrera.
-     *
-     * @param nombreVehiculo El nombre del vehículo que realiza la acción.
-     * @param accion La descripción de la acción realizada.
-     */
-    private fun registrarAccion(nombreVehiculo: String, accion: String) {
-        historialAcciones[nombreVehiculo]?.add(accion)
-    }
-
-    /**
-     * Genera y devuelve una lista de los resultados de la carrera, incluyendo la posición final,
-     * el kilometraje total recorrido, el número de paradas para repostar, y el historial de acciones
-     * para cada vehículo participante.
-     *
-     * @return Una lista de objetos [ResultadoCarrera] que representan los resultados finales de la carrera.
-     */
-    fun obtenerResultados(): List<ResultadoCarrera> {
-        val resultados = mutableListOf<ResultadoCarrera>()
-
-        posiciones.toList().sortedByDescending { it.second }.forEachIndexed { posicion, (nombre, kilometraje) ->
-            val vehiculo = participantes.find { it.nombre == nombre }
-            val paradasRepostaje = historialAcciones[nombre]?.count { it.contains("Repostaje") } ?: 0
-            val historial = historialAcciones[nombre] ?: emptyList()
-
-            if (vehiculo != null)
-                resultados.add(
-                    ResultadoCarrera(
-                        vehiculo,
-                        posicion + 1,
-                        kilometraje.redondear(2),
-                        paradasRepostaje,
-                        historial
-                    )
-                )
-        }
-        return resultados
+        return if ((ganador?.kilometrosActuales ?: 0f) >= distanciaTotal)
+            ganador
+        else
+            null
     }
 
 }

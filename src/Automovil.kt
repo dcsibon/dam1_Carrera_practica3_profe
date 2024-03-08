@@ -30,6 +30,12 @@ open class Automovil(
         }
     }
 
+    /**
+     * Sobrescribe el método obtenerKmLitroAjustado de la clase [Vehiculo] para calcular el rendimiento ajustado de
+     * kilómetros por litro para el automóvil dependiendo si se trata de un coche híbrido o no.
+     *
+     * @return El rendimiento ajustado de kilómetros por litro como un [Float]
+     */
     override fun obtenerKmLitroAjustado() =
         if (esHibrido)
             (KM_POR_LITRO + AHORRO_ELECTRICO)

@@ -16,10 +16,10 @@ class Camion(
     }
 
     /**
-     * Calcula el rendimiento ajustado de kilómetros por litro para el camión basándose en su peso.
+     * Sobrescribe el método obtenerKmLitroAjustado de la clase [Automovil] para calcular el rendimiento ajustado de
+     * kilómetros por litro para el camión basándose en su peso.
      *
-     * @return El rendimiento ajustado de kilómetros por litro como un [Float], calculado restando la reducción
-     *         basada en el peso del valor base de kilómetros por litro.
+     * @return El rendimiento ajustado de kilómetros por litro como un [Float]
      */
     override fun obtenerKmLitroAjustado() : Float {
         val reduccionPorPeso = (peso / 1000) * PESO_POR_REDUCCION
@@ -27,7 +27,8 @@ class Camion(
     }
 
     /**
-     * Proporciona una representación de cadena de texto de la instancia del camión, incluyendo detalles clave.
+     * Sobreescribe el método toString de la clase [Automovil] para obtener una representación de cadena de texto de
+     * la instancia del camión, incluyendo el peso.
      *
      * @return Una cadena de texto que representa la instancia del camión, incluyendo sus propiedades principales.
      */
